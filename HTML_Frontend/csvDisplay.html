@@ -1,5 +1,5 @@
 <!--ChatGPT helped with some minor de-bugging-->
-<html>
+<!DOCTYPE html lang = "engl">
         <style>
             table, th, td{
                 border: 1px solid black
@@ -31,12 +31,23 @@
         <!--What do we think of the colors? Change or keep?-->
         <body>
         <!--As of now, only works with GENERAL JOURNALS!-->
-        <button type = "button", onclick="importCSV()">Import Transaction</button>
+        <!--Source: https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/file-->
+        <div>
+        <label for="transactionCSV">Choose file to upload</label>
+            <input
+                type="file"
+                id="transactionCSV"
+                name="transactionCSV"
+                accept=".csv" />
+        </div>
+        <div>
+            <button type = "button", onclick="importCSV()">Import Transaction</button>
+        </div>
         <table style = "width:100%", id = "Journal">
             <tr>
                 <th style="width: 7%;">Date</th>
-                <th style="width: 25%;">Account</th>
-                <th style="width: 30%;">Memo</th>
+                <th style="width: 15%;">Account</th>
+                <th style="width: 40%;">Memo</th>
                 <th style="width: 19%;">Debit</th>
                 <th style="width: 19%;">Credit</th>
             </tr>
@@ -47,14 +58,46 @@
                     min="2025-01-01" 
                     max="2025-12-31" 
                     step="1"> </td>
-                <td contenteditable="true"> </td>
+                <td contenteditable="true">
+                    <select name = "Accounts" id = "Accounts">
+                        <option value = "">--Please Choose an Account--</option>
+                        <option value = "Cash">Cash</option>
+                        <option value = "Accounts Recievable">Accounts Recievable</option>
+                        <option value = "Inventory">Inventory</option>
+                        <option value = "Accounts Payable">Accounts Payable</option>
+                        <option value = "Owners' Equity">Owners' Equity</option>
+                        <option value = "Retained Earnings">Retained Earnings</option>
+                        <option value = "Rent Expense">Rent Expense</option>
+                        <option value = "Payroll Expense">Payroll Expense</option>
+                        <option value = "Supplies Expense">Supplies Expense</option>
+                        <option value = "Cost of Goods Sold">Cost of Goods Sold</option>
+                        <option value = "Sales Revenue">Sales Revenue</option>
+                        <option value = "Service Revenue">Service Revenue</option>
+                    </select>  
+                </td>
                 <td contenteditable="true"> </td>
                 <td contenteditable="true"> </td>
                 <td contenteditable="true"> </td>
             </tr>
             <tr>
                 <td></td>
-                <td contenteditable="true"> </td>
+                <td contenteditable="true">
+                    <select name = "Accounts" id = "Accounts">
+                        <option value = "">--Please Choose an Account--</option>
+                        <option value = "Cash">Cash</option>
+                        <option value = "Accounts Recievable">Accounts Recievable</option>
+                        <option value = "Inventory">Inventory</option>
+                        <option value = "Accounts Payable">Accounts Payable</option>
+                        <option value = "Owners' Equity">Owners' Equity</option>
+                        <option value = "Retained Earnings">Retained Earnings</option>
+                        <option value = "Rent Expense">Rent Expense</option>
+                        <option value = "Payroll Expense">Payroll Expense</option>
+                        <option value = "Supplies Expense">Supplies Expense</option>
+                        <option value = "Cost of Goods Sold">Cost of Goods Sold</option>
+                        <option value = "Sales Revenue">Sales Revenue</option>
+                        <option value = "Service Revenue">Service Revenue</option>
+                    </select> 
+                </td>
                 <td contenteditable="true"> </td>
                 <td contenteditable="true"> </td>
                 <td contenteditable="true"> </td>
@@ -78,27 +121,77 @@
         const cell3 = newRow.insertCell();
         const cell4 = newRow.insertCell();
         const cell5 = newRow.insertCell();
-        cell2.setAttribute('contentEditable', true);
         cell3.setAttribute('contentEditable', true); 
         cell4.setAttribute('contentEditable', true);
         cell5.setAttribute('contentEditable', true);  
-        // cell1.innerHTML = `<input type="date" id="Date" min="2025-01-01" max="2025-12-31" step="1">`;  
-    }
-    function save(){
-        let table = getElementById("Journal");
-        
+        // ChatGPT helped here
+        const select = document.createElement("select");
+        const options = ["--Please Choose an Account--", "Cash", "Accounts Recievable", "Inventory", "Accounts Payable", "Owners' Equity", "Retained Earnings", "Rent Expense", "Payroll Expense", "Supplies Expense", "Cost of Goods Sold", "Sales Revenue", "Service Revenue"];
+        options.forEach(optText => {
+            const option = document.createElement("option");
+            option.value = optText;
+            option.textContent = optText;
+            select.appendChild(option);
+        });
 
-        // return{
-        //     element:table,
-        //     renderTableRow: (element) =>{
-        //         this.element.appendChild(element);
-        //         return this;
-        //     }
-        // }
+    // Insert dropdown into the second cell
+        cell2.appendChild(select);  
+    }
+    async function save(){
+        let table = getElementById("Journal");
+        try {
+                await connectToDb();
+                const csvData = await readCsvFile('path/to/your/file.csv');
+                await insertData(csvData);
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                await client.end(); // Close the database connection
+                console.log('Database connection closed');
+            }
     }
 
     function importCSV(){
-
+        //Code written by Google AI
+            const { Client } = require('pg'); // Example for PostgreSQL
+            const client = new Client({
+                user: 'your_user',
+                host: 'localhost',
+                database: 'your_database',
+                password: 'your_password',
+                port: 5432,
+            });
+            async function connectToDb() {
+                await client.connect();
+                console.log('Connected to the database');
+            }
+            connectToDb();
+            const fs = require('fs');
+            const csv = require('csv-parser');
+            function readCsvFile(filePath) {
+                return new Promise((resolve, reject) => {
+                    const results = [];
+                    fs.createReadStream(filePath)
+                        .pipe(csv())
+                        .on('data', (data) => results.push(data))
+                        .on('end', () => resolve(results))
+                        .on('error', (error) => reject(error));
+                });
+            }
+            async function main() {
+            try {
+                await connectToDb();
+                const csvData = await readCsvFile('path/to/your/file.csv');
+                await insertData(csvData);
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                await client.end(); // Close the database connection
+                console.log('Database connection closed');
+            }
+        }
+    
+    main();
     }
     clearInputs();
 </script>
